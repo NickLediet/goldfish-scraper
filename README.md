@@ -1,3 +1,3 @@
 # goldfish-scrapper
 
-A commandline utility using puppeteer and node.js to scrape my Magic the Gathering collection value from https://mtggoldfish.com
+An API for https://mtggoldfish.com so I can grab data about my Magic the Gathering Collection by scraping my collection page with Puppeteer 
