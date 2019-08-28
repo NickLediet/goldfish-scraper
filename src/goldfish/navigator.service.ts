@@ -72,7 +72,8 @@ export class NavigatorService {
     // Spin up a new tab and wait for return for the process
     const data = await Promise.all([
       this.getCollectionTotals(await this.generateNewPage()),
-      this.getTopRows(await this.generateNewPage())
+      this.getTopRows(await this.generateNewPage()),
+      this.getBottomRows(await this.generateNewPage())
     ])
 
     return data.reduce((acc, tar) => ({ ...acc, ...tar}), {})
@@ -101,25 +102,53 @@ export class NavigatorService {
 
     await page.waitForSelector('.col-filter-form .sort-icon.glyphicon.glyphicon-chevron-down')
 
-    const cards = await page.evaluate((config) => {
+    const cards = await this.fetchCardsFromPage(page, 'numberOfTopRows')
+
+    return { winners: cards, winnerCount: cards.length}
+  }
+
+  private async fetchCardsFromPage(page: puppeteer.Page, limiter) {
+    return await page.evaluate((config, limiter) => {
       let rows = document.querySelector('.tablesorter').querySelectorAll('tr')
       const values = []
 
       rows.forEach((row, index) => {
-        if(index === 0 || index >= parseInt(config.numberOfTopRows) + 1) return
+        if (index === 0 || index >= parseInt(config[limiter]) + 1) return
 
         const dailyPrice = row.querySelector('.col-daily .common-price-change > span')
 
         values.push({
           id: row.id,
-            collectionDailyChange: parseFloat(dailyPrice ? dailyPrice.textContent : '0')
+          collectionDailyChange: parseFloat(dailyPrice ? dailyPrice.textContent : '0')
         })
       })
 
       return values
-    }, {...this.config})
+    }, { ...this.config}, limiter)
+  }
 
-    return { topWinners: cards }
+  private async getBottomRows(page: puppeteer.Page) {
+    // Verify page is ready
+    await page.waitForSelector('#filter_price')
+
+    // Filter where price is greater than 0 and submit filter
+    await page.focus('#filter_price')
+    await page.keyboard.type('0')
+    await page.click('#portfolio-filter-form .btn.btn-primary')
+
+    // Wait for filter to finish
+    await page.waitForSelector('.tab-content.portfolio-tab-content tbody')
+
+    // Sort by lowest
+    await page.waitForSelector('.col-daily button')
+    await page.click('.col-daily button') // Wait set doggle to asc
+    await page.waitForSelector('.col-filter-form .sort-icon.glyphicon.glyphicon-chevron-down')
+    await page.click('.col-daily button')
+    await page.waitForSelector('.col-filter-form .sort-icon.glyphicon.glyphicon-chevron-up')
+
+    const cards = await this.fetchCardsFromPage(page, 'numberOfBottomRows')
+
+    return { losers: cards, losersCount: cards.length }
   }
 
   private async generateNewPage(): Promise<puppeteer.Page> {

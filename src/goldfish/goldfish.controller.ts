@@ -20,8 +20,8 @@ export class GoldfishController {
   private createConfig(params): INavigatorParams {
     const config: INavigatorParams = {}
 
-    params.top && (config.numberOfTopRows = params.top)
-    params.bottom && (config.numberOfBottomRows = params.bottom)
+    config.numberOfTopRows = params.top ? parseInt(params.top): 5
+    config.numberOfBottomRows = params.bottom ? parseInt(params.bottom): 5
 
     return config
   }
