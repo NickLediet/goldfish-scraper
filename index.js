@@ -37,9 +37,9 @@ const main = async () => {
     await page.waitForSelector('p.total-value')
 
    // Get initial collection data
-    let data = await page.evaluate(() => { 
+    let data = await page.evaluate(() => {
         return {
-            totalCollectionValue: 
+            totalCollectionValue:
                 parseInt(document.querySelector('p.total-value')
                     .textContent
                     .replace(/\$|\,/g,'')),
@@ -50,7 +50,7 @@ const main = async () => {
     // Click all cards
     await page.click('a.tab-title[href=\'#tab-all\']')
 
-    // Click Dails $ 
+    // Click Dails $
     await page.waitForSelector('.col-daily button')
     await page.click('.col-daily button')
 
@@ -71,7 +71,7 @@ const main = async () => {
                 if(index < 1) {
                     index++
                     continue
-                } 
+                }
 
                 if(index > 6) {
                     index++
@@ -88,16 +88,16 @@ const main = async () => {
                 values.push(rowData)
             }
 
-            return { topCards: values } 
+            return { topCards: values }
         })
     }
-    
-        // Click Dails $ 
+
+        // Click Dails $
         await page.waitForSelector('.col-daily button')
         await page.click('.col-daily button')
-    
+
         await timeout(3000)
-    
+
         // Get Data
         data = {
             ...data,
@@ -107,23 +107,23 @@ const main = async () => {
                 // return { rows: rows.innerHTML}
                 const values = []
                 let index = 0;
-    
+
                 for(const row of rows) {
-                    
+
                     if(!row.querySelector('.col-price ').innerHTML) {
                         continue;
                     }
-                    
+
                     if(index < 1) {
                         index++
                         continue
-                    } 
-    
+                    }
+
                     if(index > 6) {
                         index++
                         break
                     }
-    
+
                     index++
 
                     let dailyPrice = row.querySelector('.col-daily .common-price-change > span')
@@ -132,11 +132,11 @@ const main = async () => {
                         id: row.id,
                         collectionDailyChange: parseFloat(dailyPrice ? dailyPrice.textContent : 0)
                     }
-    
+
                     values.push(rowData)
                 }
-    
-                return { lowestCards: values } 
+
+                return { lowestCards: values }
             })
         }
 
